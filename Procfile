@@ -1,1 +1,1 @@
-clock: python cron.py
+clock: python manage.py update_report
