@@ -8,7 +8,6 @@ from datetime import datetime
 from kaggle.api.kaggle_api_extended import KaggleApi
 from apscheduler.schedulers.blocking import BlockingScheduler
 
-from django.conf import settings
 from django.utils.timezone import make_aware
 from django.core.management.base import BaseCommand
 
@@ -86,6 +85,6 @@ class Command(BaseCommand):
         print('Cron started! Wait the job starts!')
 
         scheduler = BlockingScheduler()
-        scheduler.add_job(cron, 'interval', hours=1, timezone='America/Maceio')
+        scheduler.add_job(cron, 'interval', minutes=20, timezone='America/Maceio')
 
         scheduler.start()
