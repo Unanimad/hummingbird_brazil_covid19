@@ -77,7 +77,7 @@ MIDDLEWARE = [
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
 DATABASE_URL = os.environ['DATABASE_URL']
-DATABASES = dj_database_url.config(conn_max_age=600, ssl_require=True)
+DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
