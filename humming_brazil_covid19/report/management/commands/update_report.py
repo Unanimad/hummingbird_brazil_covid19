@@ -65,10 +65,14 @@ def cron(*args, **options):
             report.save()
 
             update_dataset('data/',
-                           f"Update data - {datetime.strftime(datetime.now(), '%m/%d/%Y')}")
+                           f"Auto update - {datetime.strftime(datetime.now(), '%m/%d/%Y %H:%M')}")
 
-            print("Successful data uploaded to Kaggle")
-            print("Done! The time is: %s" % datetime.now())
+            print("Successful data uploaded to Kaggle!")
+
+        else:
+            print(f"The last report {last_report} already exists!")
+
+        print("Done! The time is: %s" % datetime.now())
 
 
 def update_dataset(folder, note):
