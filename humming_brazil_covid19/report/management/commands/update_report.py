@@ -5,8 +5,10 @@ import pandas as pd
 
 from datetime import datetime
 
+from kaggle.api.kaggle_api_extended import KaggleApi
 from apscheduler.schedulers.blocking import BlockingScheduler
 
+from django.conf import settings
 from django.utils.timezone import make_aware
 from django.core.management.base import BaseCommand
 
@@ -25,7 +27,7 @@ STATES = {11: 'Rondônia', 12: 'Acre', 13: 'Amazonas', 14: 'Roraima', 15: 'Pará
 
 
 def cron(*args, **options):
-    if 6 <= datetime.now().hour <= 19:
+    if 6 <= datetime.now().hour <= 20:
 
         print("Cron job is running. The time is %s" % datetime.now())
         request = requests.get(url)
@@ -54,14 +56,27 @@ def cron(*args, **options):
                     refuses = get_key_value('refuses', value)
                     cases = get_key_value('cases', value)
 
-                    df = df.append(dict(zip(df.columns, [confirmed_at, hour, state, suspects, refuses, cases])),
+                    df = df.append(dict(zip(df.columns, [confirmed_at, hour, state,
+                                                         suspects, refuses, cases])),
                                    ignore_index=True)
 
             df.to_csv('data/brazil_covid19.csv', index=False)
-            print("Done! The time is: %s" % datetime.now())
 
             report.updated_at = make_aware(last_report)
             report.save()
+
+            update_dataset('data/',
+                           f"Update data - {datetime.strftime(datetime.now(), '%m/%d/%Y')}")
+
+            print("Successful data uploaded to Kaggle")
+            print("Done! The time is: %s" % datetime.now())
+
+
+def update_dataset(folder, note):
+    api = KaggleApi()
+    api.authenticate()
+
+    return api.dataset_create_version(folder, note, delete_old_versions=True)
 
 
 class Command(BaseCommand):
@@ -69,6 +84,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         print('Cron started! Wait the job starts!')
+
         scheduler = BlockingScheduler()
         scheduler.add_job(cron, 'interval', hours=1, timezone='America/Maceio')
 
