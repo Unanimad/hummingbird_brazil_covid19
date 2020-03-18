@@ -11,7 +11,6 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 from django.utils.timezone import make_aware
 from django.core.management.base import BaseCommand
 
-from humming_brazil_covid19.report.utils import *
 from humming_brazil_covid19.report.models import *
 
 url = "http://plataforma.saude.gov.br/novocoronavirus/resources/scripts/database.js"
@@ -41,7 +40,7 @@ def cron(*args, **options):
 
         if created:
             df = pd.DataFrame(None, columns=['date', 'hour', 'state',
-                                             'suspects', 'refuses', 'cases'])
+                                             'suspects', 'refuses', 'cases', 'deaths'])
 
             for record in data['brazil']:
                 confirmed_at = datetime.strptime(record['date'], '%d/%m/%Y')
@@ -51,12 +50,13 @@ def cron(*args, **options):
                 for value in record['values']:
                     state = STATES[int(value['uid'])]
 
-                    suspects = get_key_value('suspects', value)
-                    refuses = get_key_value('refuses', value)
-                    cases = get_key_value('cases', value)
+                    suspects = value.get('suspects', 0)
+                    refuses = value.get('refuses', 0)
+                    cases = value.get('cases', 0)
+                    deaths = value.get('deaths', 0)
 
                     df = df.append(dict(zip(df.columns, [confirmed_at, hour, state,
-                                                         suspects, refuses, cases])),
+                                                         suspects, refuses, cases, deaths])),
                                    ignore_index=True)
 
             df.to_csv('data/brazil_covid19.csv', index=False)
