@@ -1,11 +1,10 @@
 import json
 
 import requests
-import pandas as pd
 
 from datetime import datetime
+from operator import itemgetter
 
-from kaggle.api.kaggle_api_extended import KaggleApi
 from apscheduler.schedulers.blocking import BlockingScheduler
 
 from django.utils.timezone import make_aware
@@ -15,71 +14,50 @@ from humming_brazil_covid19.report.models import *
 
 url = "http://plataforma.saude.gov.br/novocoronavirus/resources/scripts/database.js"
 
-STATES = {11: 'Rondônia', 12: 'Acre', 13: 'Amazonas', 14: 'Roraima', 15: 'Pará',
-          16: 'Amapá', 17: 'Tocantins', 21: 'Maranhão', 22: 'Piauí', 23: 'Ceará',
-          24: 'Rio Grande do Norte', 25: 'Paraíba', 26: 'Pernambuco', 27: 'Alagoas',
-          28: 'Sergipe', 29: 'Bahia', 31: 'Minas Gerais', 32: 'Espírito Santo',
-          33: 'Rio de Janeiro', 35: 'São Paulo', 41: 'Paraná', 42: 'Santa Catarina',
-          43: 'Rio Grande do Sul', 50: 'Mato Grosso do Sul', 51: 'Mato Grosso',
-          52: 'Goiás', 53: 'Distrito Federal'}
-
 
 def cron(*args, **options):
     if 6 <= datetime.now().hour <= 20:
 
-        print("Cron job is running. The time is %s" % datetime.now())
+        print(f"Cron job is running. The time is {datetime.now()}")
         request = requests.get(url)
 
         content = request.content.decode('utf8').replace('var database=', '')
         data = json.loads(content)
 
-        last_report = f"{data['brazil'][-1]['date']} {data['brazil'][-1]['time']}"
-        last_report = datetime.strptime(last_report, '%d/%m/%Y %H:%M')
+        # last_report = f"{data['brazil'][-1]['date']} {data['brazil'][-1]['time']}"
+        # last_report = datetime.strptime(last_report, '%d/%m/%Y %H:%M')
 
-        report, created = Report.objects.get_or_create(updated_at=make_aware(last_report))
+        for record in data['brazil']:
+            date_time = datetime.strptime(f"{record['date']} {record['time']}",
+                                          '%d/%m/%Y %H:%M')
 
-        if created:
-            df = pd.DataFrame(None, columns=['date', 'hour', 'state',
-                                             'suspects', 'refuses', 'cases', 'deaths'])
+            report, created = Report.objects.get_or_create(
+                defaults={'updated_at': make_aware(date_time)}
+            )
 
-            for record in data['brazil']:
-                confirmed_at = datetime.strptime(record['date'], '%d/%m/%Y')
-                confirmed_at = datetime.strftime(confirmed_at, '%Y-%m-%d')
-                hour = record['time']
-
+            if created:
                 for value in record['values']:
-                    state = STATES[int(value['uid'])]
+                    state = list(map(itemgetter(0), Case.STATES))
 
                     suspects = value.get('suspects', 0)
                     refuses = value.get('refuses', 0)
                     cases = value.get('cases', 0)
                     deaths = value.get('deaths', 0)
 
-                    df = df.append(dict(zip(df.columns, [confirmed_at, hour, state,
-                                                         suspects, refuses, cases, deaths])),
-                                   ignore_index=True)
+                    Case.objects.get_or_create(
+                        suspects, refuses, cases, deaths,
+                        defaults={
+                            'state': state,
+                            'report': report
+                        })
 
-            df.to_csv('data/brazil_covid19.csv', index=False)
+        instance = Kaggle.objects.last()
+        if instance.last_update != report.last_report:
+            instance.update_kaggle('data/', report.last_report)
 
-            report.updated_at = make_aware(last_report)
-            report.save()
+        print(f"The last report {report.last_report} already exists!")
 
-            update_dataset('data/',
-                           f"Auto update - {datetime.strftime(datetime.now(), '%m/%d/%Y %H:%M')}")
-
-            print("Successful data uploaded to Kaggle!")
-
-        else:
-            print(f"The last report {last_report} already exists!")
-
-        print("Done! The time is: %s" % datetime.now())
-
-
-def update_dataset(folder, note):
-    api = KaggleApi()
-    api.authenticate()
-
-    return api.dataset_create_version(folder, note, delete_old_versions=True)
+    print(f"Done! The time is: {datetime.now()}")
 
 
 class Command(BaseCommand):
