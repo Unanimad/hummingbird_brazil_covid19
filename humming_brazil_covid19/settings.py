@@ -74,17 +74,17 @@ MIDDLEWARE = [
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
-# DATABASE_URL = os.environ['DATABASE_URL']
-# DATABASES = {
-#     'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
-# }
-
+DATABASE_URL = os.environ['DATABASE_URL']
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'covid_brazil.sqlite3',
-    }
+    'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': 'covid_brazil.sqlite3',
+#     }
+# }
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
