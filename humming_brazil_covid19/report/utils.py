@@ -32,8 +32,6 @@ def to_csv():
 
                 values.append(dict(zip(columns, [date, hour, state, suspects, refuses, cases, deaths])))
 
-                print(values)
-
     df = df.append(values, ignore_index=True)
     df = df.sort_values(by=['date', 'hour', 'state'])
     df.to_csv('data/brazil_covid19.csv', index=False, columns=columns)
