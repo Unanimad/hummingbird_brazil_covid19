@@ -1,20 +1,16 @@
 from django.db import models
 
-import pandas as pd
 from kaggle.api.kaggle_api_extended import KaggleApi
 
 
 class Kaggle(models.Model):
     last_update = models.DateTimeField(auto_now=False)
 
-    def update_kaggle(self, folder, last_report):
-        self.last_update = last_report
-        self.save()
-
+    def update_kaggle(self, folder):
         api = KaggleApi()
         api.authenticate()
 
-        api.dataset_create_version(folder, f"Auto update - {last_report}",
+        api.dataset_create_version(folder, f"Auto update - {self.last_update}",
                                    delete_old_versions=True)
 
 
@@ -23,13 +19,6 @@ class Report(models.Model):
 
     def __str__(self):
         return self.updated_at.strftime('%d/%m/%Y')
-
-
-def to_csv():
-    df = pd.DataFrame(None, columns=['date', 'hour', 'state',
-                                     'suspects', 'refuses', 'cases', 'deaths'])
-
-    df.to_csv('data/brazil_covid19.csv', index=False)
 
 
 class Case(models.Model):
