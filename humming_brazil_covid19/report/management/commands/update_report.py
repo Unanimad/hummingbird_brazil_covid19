@@ -88,8 +88,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         print('Cron started! Wait the job starts!')
 
-        cron()
-        # scheduler = BlockingScheduler()
-        # scheduler.add_job(cron, 'interval', minutes=20, timezone='America/Maceio')
+        scheduler = BlockingScheduler()
+        scheduler.add_job(cron, 'interval', minutes=20, timezone='America/Maceio')
 
-        # scheduler.start()
+        scheduler.start()
