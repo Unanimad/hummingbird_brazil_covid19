@@ -35,11 +35,9 @@ def cron(*args, **options):
 
         dt, _, us = data['updatedAt'].partition(".")
         last_report = datetime.strptime(dt, '%Y-%m-%dT%H:%M:%S')
-        us = int(us.rstrip("Z"), 10)
-        last_report = last_report + timedelta(microseconds=us)
 
         report, created = Report.objects.get_or_create(
-            updated_at=make_aware(last_report)
+            updated_at=last_report
         )
 
         if created:
@@ -90,7 +88,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         print('Cron started! Wait the job starts!')
 
-        scheduler = BlockingScheduler()
-        scheduler.add_job(cron, 'interval', minutes=20, timezone='America/Maceio')
+        cron()
+        # scheduler = BlockingScheduler()
+        # scheduler.add_job(cron, 'interval', minutes=20, timezone='America/Maceio')
 
-        scheduler.start()
+        # scheduler.start()

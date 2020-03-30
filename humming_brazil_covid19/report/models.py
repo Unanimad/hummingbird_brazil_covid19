@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.db import models
 
 from kaggle.api.kaggle_api_extended import KaggleApi
@@ -10,7 +12,8 @@ class Kaggle(models.Model):
         api = KaggleApi()
         api.authenticate()
 
-        api.dataset_create_version(folder, f"Auto update - {self.last_update}",
+        last_update = datetime.strftime(self.last_update, '%m/%d/%Y %H:%M')
+        api.dataset_create_version(folder, f"Auto update - {last_update} GMT-3",
                                    delete_old_versions=True)
 
 
