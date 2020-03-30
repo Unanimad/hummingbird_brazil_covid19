@@ -2,8 +2,7 @@ import json
 
 import requests
 
-from datetime import datetime
-from operator import itemgetter
+from datetime import datetime, timedelta
 
 from apscheduler.schedulers.blocking import BlockingScheduler
 
@@ -11,51 +10,76 @@ from django.utils.timezone import make_aware
 from django.core.management.base import BaseCommand
 
 from humming_brazil_covid19.report.models import *
+from humming_brazil_covid19.report.utils import to_csv
 
-url = "http://plataforma.saude.gov.br/novocoronavirus/resources/scripts/database.js"
+url = "https://xx9p7hp1p7.execute-api.us-east-1.amazonaws.com/prod/"
+headers = {
+    "accept": "application/json, text/plain, */*",
+    "accept-language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "cross-site",
+    "x-parse-application-id": "unAFkcaNDeXajurGB7LChj8SgQYS2ptm"
+}
 
 
 def cron(*args, **options):
     if 6 <= datetime.now().hour <= 20:
 
         print(f"Cron job is running. The time is {datetime.now()}")
-        request = requests.get(url)
+        request = requests.get(url + 'PortalGeral', headers=headers)
 
-        content = request.content.decode('utf8').replace('var database=', '')
-        data = json.loads(content)
+        content = request.content.decode('utf8')
 
-        # last_report = f"{data['brazil'][-1]['date']} {data['brazil'][-1]['time']}"
-        # last_report = datetime.strptime(last_report, '%d/%m/%Y %H:%M')
+        data = json.loads(content)['results'][0]
 
-        for record in data['brazil']:
-            date_time = datetime.strptime(f"{record['date']} {record['time']}",
-                                          '%d/%m/%Y %H:%M')
+        dt, _, us = data['updatedAt'].partition(".")
+        last_report = datetime.strptime(dt, '%Y-%m-%dT%H:%M:%S')
+        us = int(us.rstrip("Z"), 10)
+        last_report = last_report + timedelta(microseconds=us)
 
-            report, created = Report.objects.get_or_create(
-                defaults={'updated_at': make_aware(date_time)}
-            )
+        report, created = Report.objects.get_or_create(
+            updated_at=make_aware(last_report)
+        )
 
-            if created:
-                for value in record['values']:
-                    state = list(map(itemgetter(0), Case.STATES))
+        if created:
+            print(f"Fetching new report: {report.updated_at}")
 
-                    suspects = value.get('suspects', 0)
-                    refuses = value.get('refuses', 0)
-                    cases = value.get('cases', 0)
-                    deaths = value.get('deaths', 0)
+            request = requests.get(url + 'PortalMapa', headers=headers)
+            content = request.content.decode('utf8')
+            data = json.loads(content)['results']
 
-                    Case.objects.get_or_create(
-                        suspects, refuses, cases, deaths,
-                        defaults={
-                            'state': state,
-                            'report': report
-                        })
+            for state in data:
+                state_uid = 0
 
-        instance = Kaggle.objects.last()
-        if instance.last_update != report.last_report:
-            instance.update_kaggle('data/', report.last_report)
+                for uid in Case.STATES:
+                    if uid[1] == state['nome']:
+                        state_uid = uid[0]
+                        break
 
-        print(f"The last report {report.last_report} already exists!")
+                suspects = state.get('qtd_suspeito', 0)
+                refuses = state.get('qtd_descartado', 0)
+                cases = state.get('qtd_confirmado', 0)
+                deaths = state.get('qtd_obito', 0)
+
+                Case.objects.get_or_create(
+                    suspects=suspects, refuses=refuses,
+                    cases=cases, deaths=deaths,
+                    defaults={
+                        'state': state_uid,
+                        'report': report
+                    })
+
+            to_csv()
+
+            instance = Kaggle.objects.last()
+            if not instance:
+                instance = Kaggle.objects.create(last_update=last_report)
+
+            instance.update_kaggle('data/')
+
+        else:
+            print(f"The last report {report.updated_at} already exists!")
 
     print(f"Done! The time is: {datetime.now()}")
 
