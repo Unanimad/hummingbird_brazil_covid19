@@ -74,12 +74,14 @@ def cron(*args, **options):
             if not instance:
                 instance = Kaggle.objects.create(last_update=last_report)
 
-            instance.update_kaggle('data/')
+            instance.update_kaggle('data/', last_report)
 
         else:
             print(f"The last report {report.updated_at} already exists!")
 
-    print(f"Done! The time is: {datetime.now()}")
+        print(f"Done! The time is: {datetime.now()}")
+    else:
+        print("It's not time yet!")
 
 
 class Command(BaseCommand):

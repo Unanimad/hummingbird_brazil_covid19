@@ -8,7 +8,10 @@ from kaggle.api.kaggle_api_extended import KaggleApi
 class Kaggle(models.Model):
     last_update = models.DateTimeField(auto_now=False)
 
-    def update_kaggle(self, folder):
+    def update_kaggle(self, folder, last_update):
+        self.last_update = last_update
+        self.save()
+
         api = KaggleApi()
         api.authenticate()
 
