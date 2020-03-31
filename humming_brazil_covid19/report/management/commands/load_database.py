@@ -2,7 +2,6 @@ import json
 
 import pandas as pd
 import requests
-
 from django.core.management.base import BaseCommand
 
 from humming_brazil_covid19.report.models import *
@@ -29,39 +28,29 @@ def load_database(*args, **options):
 
     last_platform_report = datetime.strptime(data['dt_atualizacao'], '%H:%M %d/%m/%Y')
 
-    last_report, created = Report.objects.get_or_create(
-        updated_at=last_platform_report
-    )
+    csv_file = f"https://covid.saude.gov.br/assets/files/COVID19_{datetime.strftime(last_platform_report, '%Y%m%d')}.csv"
+    df = pd.read_csv(csv_file, sep=';')
 
-    if created is False:
-        return print(f"No updates yet! Last report was at {data['dt_atualizacao']}")
+    for i, row in df.iterrows():
+        date = datetime.strptime(row['data'], '%d/%m/%Y')
+        report, created = Report.objects.get_or_create(
+            updated_at=date
+        )
 
-    else:
-        print(f"Fetching new report: {data['dt_atualizacao']}")
+        cases = row['casosAcumulados']
+        deaths = row['obitosAcumulado']
 
-        csv_file = f"https://covid.saude.gov.br/assets/files/COVID19_{datetime.strftime(last_platform_report, '%Y%m%d')}.csv"
-        df = pd.read_csv(csv_file, sep=';')
+        default_region = ''
+        for region in Case.REGION:
+            if region[1] == row['regiao']:
+                default_region = region[0]
+                break
 
-        for i, row in df.iterrows():
-            date = datetime.strptime(row['data'], '%d/%m/%Y')
-            report, created = Report.objects.get_or_create(
-                updated_at=date
-            )
-
-            cases = row['casosAcumulados']
-            deaths = row['obitosAcumulado']
-
-            default_region = ''
-            for region in Case.REGION:
-                if region[1] == row['regiao']:
-                    default_region = region[0]
-                    break
-
-            Case.objects.get_or_create(
-                cases=cases, deaths=deaths,
-                state=row['estado'], region=default_region,
-                report=report
-            )
+        Case.objects.get_or_create(
+            cases=cases, deaths=deaths,
+            state=row['estado'], region=default_region,
+            report=report
+        )
 
 
 class Command(BaseCommand):

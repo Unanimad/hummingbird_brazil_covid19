@@ -9,6 +9,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 from django.utils.timezone import make_aware
 from django.core.management.base import BaseCommand
 
+from humming_brazil_covid19.report.management.commands.load_database import load_database
 from humming_brazil_covid19.report.models import *
 from humming_brazil_covid19.report.utils import to_csv
 
@@ -25,7 +26,6 @@ headers = {
 
 def cron(*args, **options):
     if 6 <= datetime.now().hour <= 20:
-
         print(f"Cron job is running. The time is {datetime.now()}")
         request = requests.get(url + 'PortalGeral', headers=headers)
 
@@ -40,28 +40,7 @@ def cron(*args, **options):
         )
 
         if created:
-            print(f"Fetching new report: {report.updated_at}")
-
-            request = requests.get(url + 'PortalMapa', headers=headers)
-            content = request.content.decode('utf8')
-            data = json.loads(content)['results']
-
-            for state in data:
-                uf = ''
-
-                for uid in Case.STATES:
-                    if uid[1] == state['nome']:
-                        uf = uid[0]
-                        break
-
-                cases = state.get('qtd_confirmado', 0)
-                deaths = state.get('qtd_obito', 0)
-
-                Case.objects.get_or_create(
-                    cases=cases, deaths=deaths,
-                    state=uf, report=report
-                )
-
+            load_database()
             to_csv()
 
             instance = Kaggle.objects.last()
