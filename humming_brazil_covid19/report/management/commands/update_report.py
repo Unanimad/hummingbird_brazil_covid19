@@ -33,8 +33,7 @@ def cron(*args, **options):
 
         data = json.loads(content)['results'][0]
 
-        dt, _, us = data['updatedAt'].partition(".")
-        last_report = datetime.strptime(dt, '%Y-%m-%dT%H:%M:%S')
+        last_report = datetime.strptime(data['dt_atualizacao'], '%H:%M %d/%m/%Y')
 
         report, created = Report.objects.get_or_create(
             updated_at=last_report
