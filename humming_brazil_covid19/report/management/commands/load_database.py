@@ -39,7 +39,7 @@ def load_database(*args, **options):
     else:
         print(f"Fetching new report: {data['dt_atualizacao']}")
 
-        csv_file = f"https://covid.saude.gov.br/assets/files/BRnCov19_{datetime.strftime(last_platform_report, '%d%m%Y')}.csv"
+        csv_file = f"https://covid.saude.gov.br/assets/files/COVID19_{datetime.strftime(last_platform_report, '%Y%m%d')}.csv"
         df = pd.read_csv(csv_file, sep=';')
 
         for i, row in df.iterrows():
@@ -49,7 +49,7 @@ def load_database(*args, **options):
             )
 
             cases = row['casosAcumulados']
-            deaths = row['obitosAcumulados']
+            deaths = row['obitosAcumulado']
 
             default_region = ''
             for region in Case.REGION:

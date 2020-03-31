@@ -59,10 +59,8 @@ def cron(*args, **options):
 
                 Case.objects.get_or_create(
                     cases=cases, deaths=deaths,
-                    defaults={
-                        'state': uf,
-                        'report': report
-                    })
+                    state=uf, report=report
+                )
 
             to_csv()
 
