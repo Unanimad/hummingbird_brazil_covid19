@@ -1,5 +1,3 @@
-from datetime import datetime
-
 import pandas as pd
 
 from humming_brazil_covid19.report.models import *
@@ -8,30 +6,24 @@ from humming_brazil_covid19.report.models import *
 def to_csv():
     values = []
     STATES = dict(Case.STATES)
+    REGION = dict(Case.REGION)
     columns = [
-        'date', 'hour', 'state', 'suspects', 'refuses', 'cases', 'deaths'
+        'date', 'region', 'state', 'cases', 'deaths'
     ]
 
-    df = pd.read_csv('data/brazil_covid19.csv', usecols=columns)
+    df = pd.DataFrame(None, columns=columns)
 
-    reports = Report.objects.all()
+    cases = Case.objects.all()
 
-    for report in reports:
-        date = datetime.strftime(report.updated_at, '%Y-%m-%d')
-        hour = datetime.strftime(report.updated_at, '%H:%M')
+    for case in cases:
+        date = datetime.strftime(case.report.updated_at, '%Y-%m-%d')
+        region = REGION[case.region]
+        state = STATES[case.state]
+        cases = case.cases
+        deaths = case.deaths
 
-        temp = df.loc[(df.date == date) & (df.hour == hour)]
-        if temp.empty:
-            cases = Case.objects.filter(report=report)
-            for case in cases:
-                state = STATES[case.state]
-                suspects = case.suspects
-                refuses = case.refuses
-                cases = case.cases
-                deaths = case.deaths
-
-                values.append(dict(zip(columns, [date, hour, state, suspects, refuses, cases, deaths])))
+        values.append(dict(zip(columns, [date, region, state, cases, deaths])))
 
     df = df.append(values, ignore_index=True)
-    df = df.sort_values(by=['date', 'hour', 'state'])
+    df = df.sort_values(by=['date', 'region', 'state'])
     df.to_csv('data/brazil_covid19.csv', index=False, columns=columns)

@@ -1,7 +1,6 @@
 from datetime import datetime
 
 from django.db import models
-
 from kaggle.api.kaggle_api_extended import KaggleApi
 
 
@@ -29,21 +28,26 @@ class Report(models.Model):
 
 class Case(models.Model):
     STATES = [
-        (11, 'Rondônia'), (12, 'Acre'), (13, 'Amazonas'), (14, 'Roraima'),
-        (15, 'Pará'), (16, 'Amapá'), (17, 'Tocantins'), (21, 'Maranhão'),
-        (22, 'Piauí'), (23, 'Ceará'), (24, 'Rio Grande do Norte'),
-        (25, 'Paraíba'), (26, 'Pernambuco'), (27, 'Alagoas'),
-        (28, 'Sergipe'), (29, 'Bahia'), (31, 'Minas Gerais'),
-        (32, 'Espírito Santo'), (33, 'Rio de Janeiro'), (35, 'São Paulo'),
-        (41, 'Paraná'), (42, 'Santa Catarina'), (43, 'Rio Grande do Sul'),
-        (50, 'Mato Grosso do Sul'), (51, 'Mato Grosso'), (52, 'Goiás'),
-        (53, 'Distrito Federal')
+        ('RO', 'Rondônia'), ('AC', 'Acre'), ('AM', 'Amazonas'), ('RR', 'Roraima'),
+        ('PA', 'Pará'), ('AP', 'Amapá'), ('TO', 'Tocantins'), ('MA', 'Maranhão'),
+        ('PI', 'Piauí'), ('CE', 'Ceará'), ('RN', 'Rio Grande do Norte'),
+        ('PB', 'Paraíba'), ('PE', 'Pernambuco'), ('AL', 'Alagoas'),
+        ('SE', 'Sergipe'), ('BA', 'Bahia'), ('MG', 'Minas Gerais'),
+        ('ES', 'Espírito Santo'), ('RJ', 'Rio de Janeiro'), ('SP', 'São Paulo'),
+        ('PR', 'Paraná'), ('SC', 'Santa Catarina'), ('RS', 'Rio Grande do Sul'),
+        ('MS', 'Mato Grosso do Sul'), ('MT', 'Mato Grosso'), ('GO', 'Goiás'),
+        ('DF', 'Distrito Federal')
     ]
 
-    state = models.PositiveSmallIntegerField(choices=STATES)
+    REGION = [
+        ('NE', 'Nordeste'), ('NO', 'Norte'), ('CO', 'Centro-Oeste'),
+        ('SU', 'Sul'), ('SE', 'Sudeste')
 
-    suspects = models.PositiveSmallIntegerField(default=0)
-    refuses = models.PositiveSmallIntegerField(default=0)
+    ]
+
+    state = models.CharField(max_length=2, choices=STATES)
+    region = models.CharField(max_length=2, choices=REGION)
+
     cases = models.PositiveSmallIntegerField(default=0)
     deaths = models.PositiveSmallIntegerField(default=0)
 

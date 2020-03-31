@@ -47,23 +47,20 @@ def cron(*args, **options):
             data = json.loads(content)['results']
 
             for state in data:
-                state_uid = 0
+                uf = ''
 
                 for uid in Case.STATES:
                     if uid[1] == state['nome']:
-                        state_uid = uid[0]
+                        uf = uid[0]
                         break
 
-                suspects = state.get('qtd_suspeito', 0)
-                refuses = state.get('qtd_descartado', 0)
                 cases = state.get('qtd_confirmado', 0)
                 deaths = state.get('qtd_obito', 0)
 
                 Case.objects.get_or_create(
-                    suspects=suspects, refuses=refuses,
                     cases=cases, deaths=deaths,
                     defaults={
-                        'state': state_uid,
+                        'state': uf,
                         'report': report
                     })
 
