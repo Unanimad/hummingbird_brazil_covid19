@@ -24,7 +24,7 @@
         {
             "description": "This file contains the cases published by Ministry of Health over the time since the first case of COVID-19 in Brazil.",
             "name": "brazil_covid19.csv",
-            "totalBytes": 36613,
+            "totalBytes": 58892,
             "columns": [
                 {
                     "name": "date",
@@ -32,24 +32,14 @@
                     "type": "DateTime"
                 },
                 {
-                    "name": "hour",
-                    "description": "Hour of confirmation (GMT-3)",
-                    "type": "DateTime"
+                    "name": "region",
+                    "description": "Region of State",
+                    "type": "String"
                 },
                 {
                     "name": "state",
                     "description": "State",
                     "type": "String"
-                },
-                {
-                    "name": "suspects",
-                    "description": "Number of suspects cases",
-                    "type": "Uuid"
-                },
-                {
-                    "name": "refuses",
-                    "description": "Number of refuses cases",
-                    "type": "Uuid"
                 },
                 {
                     "name": "cases",
@@ -58,7 +48,7 @@
                 },
                 {
                     "name": "deaths",
-                    "description": "Number of deaths cases",
+                    "description": "Number of death cases",
                     "type": "Uuid"
                 }
             ]
