@@ -84,7 +84,7 @@ def cron(*args, **options):
 
 
 class Command(BaseCommand):
-    help = 'Update kaggle dataset with the last cases of COVID-19 in Brazil.'
+    help = 'Automatically update  kaggle dataset with the last cases of COVID-19 in Brazil.'
 
     def handle(self, *args, **options):
         print('Cron started! Wait the job starts!')
