@@ -33,13 +33,10 @@ def cron(*args, **options):
 
         data = json.loads(content)['results'][0]
 
-        dt, _, us = data['updatedAt'].partition(".")
-        last_report = datetime.strptime(dt, '%Y-%m-%dT%H:%M:%S')
-        us = int(us.rstrip("Z"), 10)
-        last_report = last_report + timedelta(microseconds=us)
+        last_report = datetime.strptime(data['dt_atualizacao'], '%H:%M %d/%m/%Y')
 
         report, created = Report.objects.get_or_create(
-            updated_at=make_aware(last_report)
+            updated_at=last_report
         )
 
         if created:
@@ -76,16 +73,18 @@ def cron(*args, **options):
             if not instance:
                 instance = Kaggle.objects.create(last_update=last_report)
 
-            instance.update_kaggle('data/')
+            instance.update_kaggle('data/', last_report)
 
         else:
             print(f"The last report {report.updated_at} already exists!")
 
-    print(f"Done! The time is: {datetime.now()}")
+        print(f"Done! The time is: {datetime.now()}")
+    else:
+        print("It's not time yet!")
 
 
 class Command(BaseCommand):
-    help = 'Update kaggle dataset with the last cases of COVID-19 in Brazil.'
+    help = 'Automatically update  kaggle dataset with the last cases of COVID-19 in Brazil.'
 
     def handle(self, *args, **options):
         print('Cron started! Wait the job starts!')
