@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '@^0cw57r4(i1gi=w$l@g8!y)reuo@1q-ix(((oy#3vl@7^=hkh'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -36,12 +36,11 @@ INSTALLED_APPS = [
     # 'django.contrib.sessions',
     # 'django.contrib.messages',
     # 'django.contrib.staticfiles',
-
     'humming_brazil_covid19.report',
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
+    # 'django.middleware.security.SecurityMiddleware',
     # 'django.contrib.sessions.middleware.SessionMiddleware',
     # 'django.middleware.common.CommonMiddleware',
     # 'django.middleware.csrf.CsrfViewMiddleware',
@@ -50,7 +49,7 @@ MIDDLEWARE = [
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# ROOT_URLCONF = 'humming_brazil_covid19.urls'
+ROOT_URLCONF = 'humming_brazil_covid19.urls'
 
 """ TEMPLATES = [
     {
@@ -68,23 +67,8 @@ MIDDLEWARE = [
     },
 ]"""
 
-# WSGI_APPLICATION = 'humming_brazil_covid19.wsgi.application'
+WSGI_APPLICATION = 'humming_brazil_covid19.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/3.0/ref/settings/#databases
-
-DATABASE_URL = os.environ['DATABASE_URL']
-DATABASES = {
-    'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
-}
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': 'covid_brazil.sqlite3',
-#     }
-# }
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
