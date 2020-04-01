@@ -14,35 +14,56 @@ class Kaggle(models.Model):
         api = KaggleApi()
         api.authenticate()
 
-        last_update = datetime.strftime(self.last_update, '%m/%d/%Y %H:%M')
-        api.dataset_create_version(folder, f"Auto update - {last_update} GMT-3",
-                                   delete_old_versions=True)
+        last_update = datetime.strftime(self.last_update, "%m/%d/%Y %H:%M")
+        api.dataset_create_version(
+            folder, f"Auto update - {last_update} GMT-3", delete_old_versions=True
+        )
 
 
 class Report(models.Model):
     updated_at = models.DateTimeField(auto_now=False)
 
     def __str__(self):
-        return self.updated_at.strftime('%d/%m/%Y')
+        return self.updated_at.strftime("%d/%m/%Y")
 
 
 class Case(models.Model):
     STATES = [
-        ('RO', 'Rondônia'), ('AC', 'Acre'), ('AM', 'Amazonas'), ('RR', 'Roraima'),
-        ('PA', 'Pará'), ('AP', 'Amapá'), ('TO', 'Tocantins'), ('MA', 'Maranhão'),
-        ('PI', 'Piauí'), ('CE', 'Ceará'), ('RN', 'Rio Grande do Norte'),
-        ('PB', 'Paraíba'), ('PE', 'Pernambuco'), ('AL', 'Alagoas'),
-        ('SE', 'Sergipe'), ('BA', 'Bahia'), ('MG', 'Minas Gerais'),
-        ('ES', 'Espírito Santo'), ('RJ', 'Rio de Janeiro'), ('SP', 'São Paulo'),
-        ('PR', 'Paraná'), ('SC', 'Santa Catarina'), ('RS', 'Rio Grande do Sul'),
-        ('MS', 'Mato Grosso do Sul'), ('MT', 'Mato Grosso'), ('GO', 'Goiás'),
-        ('DF', 'Distrito Federal')
+        ("RO", "Rondônia"),
+        ("AC", "Acre"),
+        ("AM", "Amazonas"),
+        ("RR", "Roraima"),
+        ("PA", "Pará"),
+        ("AP", "Amapá"),
+        ("TO", "Tocantins"),
+        ("MA", "Maranhão"),
+        ("PI", "Piauí"),
+        ("CE", "Ceará"),
+        ("RN", "Rio Grande do Norte"),
+        ("PB", "Paraíba"),
+        ("PE", "Pernambuco"),
+        ("AL", "Alagoas"),
+        ("SE", "Sergipe"),
+        ("BA", "Bahia"),
+        ("MG", "Minas Gerais"),
+        ("ES", "Espírito Santo"),
+        ("RJ", "Rio de Janeiro"),
+        ("SP", "São Paulo"),
+        ("PR", "Paraná"),
+        ("SC", "Santa Catarina"),
+        ("RS", "Rio Grande do Sul"),
+        ("MS", "Mato Grosso do Sul"),
+        ("MT", "Mato Grosso"),
+        ("GO", "Goiás"),
+        ("DF", "Distrito Federal"),
     ]
 
     REGION = [
-        ('NE', 'Nordeste'), ('NO', 'Norte'), ('CO', 'Centro-Oeste'),
-        ('SU', 'Sul'), ('SE', 'Sudeste')
-
+        ("NE", "Nordeste"),
+        ("NO", "Norte"),
+        ("CO", "Centro-Oeste"),
+        ("SU", "Sul"),
+        ("SE", "Sudeste"),
     ]
 
     state = models.CharField(max_length=2, choices=STATES)
@@ -53,9 +74,20 @@ class Case(models.Model):
 
     report = models.ForeignKey(Report, on_delete=models.CASCADE)
 
+    @classmethod
+    def last_cases(cls):
+        last_report_data = (
+            Report.objects.only("updated_at").order_by("-updated_at").first()
+        )
+        return cls.objects.filter(report=last_report_data).all()
+
+    @property
+    def updated_at(self):
+        return self.report.updated_at
+
     def __str__(self):
         return f"{self.state} {self.report}"
 
     class Meta:
-        ordering = ['report', 'state']
-        verbose_name = 'Caso'
+        ordering = ["report", "state"]
+        verbose_name = "Caso"
