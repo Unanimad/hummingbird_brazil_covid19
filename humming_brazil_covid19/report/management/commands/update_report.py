@@ -27,6 +27,7 @@ headers = {
 def cron(*args, **options):
     if 6 <= datetime.now().hour <= 20:
         print(f"Cron job is running. The time is {datetime.now()}")
+
         request = requests.get(url + 'PortalGeral', headers=headers)
 
         content = request.content.decode('utf8')
@@ -40,7 +41,28 @@ def cron(*args, **options):
         )
 
         if created:
-            load_database()
+            request = requests.get(url + 'PortalMapa', headers=headers)
+            content = request.content.decode('utf8')
+            data = json.loads(content)['results']
+
+            for state in data:
+                state_uf = ''
+
+                for uf in Case.STATES:
+                    if uf[1] == state['nome']:
+                        state_uf = uf[0]
+
+                case = list(Case.objects.filter(state=state_uf))[0]
+
+                cases = state.get('qtd_confirmado', 0)
+                deaths = state.get('qtd_obito', 0)
+
+                Case.objects.get_or_create(
+                    cases=cases, deaths=deaths,
+                    state=state_uf, region=case.region,
+                    report=report
+                )
+
             to_csv()
 
             instance = Kaggle.objects.last()
