@@ -21,8 +21,8 @@ from humming_brazil_covid19.report import views
 
 router = routers.DefaultRouter()
 
-router.register(r"all_cases", views.AllCasesViewSet)
-router.register(r"last_cases", views.LastCasesViewSet)
+router.register(r"all_cases", views.AllCasesViewSet, "all_cases")
+router.register(r"last_cases", views.LastCasesViewSet, "last_cases")
 
 
 urlpatterns = [
