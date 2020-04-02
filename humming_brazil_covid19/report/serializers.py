@@ -6,3 +6,9 @@ class CaseSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Case
         fields = ("state", "region", "cases", "deaths", "updated_at")
+
+
+class AllCaseSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Case
+        fields = ("state", "region", "cases", "deaths", "updated_at")

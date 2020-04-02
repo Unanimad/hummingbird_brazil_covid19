@@ -19,12 +19,13 @@ from rest_framework import routers
 
 from humming_brazil_covid19.report import views
 
-
 router = routers.DefaultRouter()
-router.register(r"all_cases", views.CasesViewSet)
+
+router.register(r"all_cases", views.AllCasesViewSet)
 router.register(r"last_cases", views.LastCasesViewSet)
+
 
 urlpatterns = [
     path("", RedirectView.as_view(url="api/v1/")),
-    path("api/v1/", include(router.urls)),
+    path(r"api/v1/", include(router.urls)),
 ]
