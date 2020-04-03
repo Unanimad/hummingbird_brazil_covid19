@@ -23,9 +23,11 @@ router = routers.DefaultRouter()
 
 router.register(r"all_cases", views.AllCasesViewSet, "all_cases")
 router.register(r"last_cases", views.LastCasesViewSet, "last_cases")
+# router.register(r"states", views.StatesList, "states_list")
 
 
 urlpatterns = [
     path("", RedirectView.as_view(url="api/v1/")),
     path(r"api/v1/", include(router.urls)),
+    # path(r"api/v1/states", views.StatesList.as_view(), name="states_list"),
 ]

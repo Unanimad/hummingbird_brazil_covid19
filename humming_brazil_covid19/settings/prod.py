@@ -18,8 +18,5 @@ from humming_brazil_covid19.settings.base import *
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
 DEBUG = False
-DATABASE_URL = os.environ.get('DATABASE_URL', "")
-DATABASES = {
-    'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
-}
-
+DATABASE_URL = os.environ.get("DATABASE_URL", "")
+DATABASES = {"default": dj_database_url.config(conn_max_age=600, ssl_require=True)}

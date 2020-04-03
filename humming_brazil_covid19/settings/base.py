@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "humming_brazil_covid19.report",
     "rest_framework",
+    "django_filters",
 ]
 
 MIDDLEWARE = [
