@@ -26,9 +26,7 @@ def load_database(*args, **options):
 
     data = json.loads(content)['results'][0]
 
-    last_platform_report = datetime.strptime(data['dt_atualizacao'], '%H:%M %d/%m/%Y')
-
-    csv_file = f"https://covid.saude.gov.br/assets/files/COVID19_{datetime.strftime(last_platform_report, '%Y%m%d')}.csv"
+    csv_file = data['arquivo']['url']
     df = pd.read_csv(csv_file, sep=';')
 
     for i, row in df.iterrows():
