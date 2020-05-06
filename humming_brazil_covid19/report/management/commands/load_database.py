@@ -30,13 +30,13 @@ def load_database(*args, **options):
     df = pd.read_csv(csv_file, sep=';')
 
     for i, row in df.iterrows():
-        date = datetime.strptime(row['data'], '%d/%m/%Y')
+        date = datetime.strptime(row['data'], '%Y-%m-%d')
         report, created = Report.objects.get_or_create(
             updated_at=date
         )
 
         cases = row['casosAcumulados']
-        deaths = row['obitosAcumulado']
+        deaths = row['obitosAcumulados']
 
         default_region = ''
         for region in Case.REGION:
