@@ -39,9 +39,9 @@ def load_database(*args, **options):
         deaths = row['obitosAcumulados']
 
         default_region = ''
-        for region in Case.REGION:
-            if region[1] == row['regiao']:
-                default_region = region[0]
+        for sigla, region in Case.REGION:
+            if region == row['regiao']:
+                default_region = sigla
                 break
 
         Case.objects.get_or_create(
