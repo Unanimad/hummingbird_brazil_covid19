@@ -69,8 +69,8 @@ class Case(models.Model):
     state = models.CharField(max_length=2, choices=STATES)
     region = models.CharField(max_length=2, choices=REGION)
 
-    cases = models.PositiveSmallIntegerField(default=0)
-    deaths = models.PositiveSmallIntegerField(default=0)
+    cases = models.PositiveIntegerField(default=0)
+    deaths = models.PositiveIntegerField(default=0)
 
     report = models.ForeignKey(Report, on_delete=models.CASCADE)
 
