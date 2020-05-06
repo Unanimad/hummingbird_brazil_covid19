@@ -29,7 +29,7 @@ class AllCasesViewSet(BaseModelReportViewSet):
 
 
 class LastCasesViewSet(BaseModelReportViewSet):
-    queryset = Case.last_cases()
+    # queryset = Case.last_cases()
     serializer_class = AllCaseSerializer
 
 
