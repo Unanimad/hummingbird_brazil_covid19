@@ -74,17 +74,6 @@ class Case(models.Model):
 
     report = models.ForeignKey(Report, on_delete=models.CASCADE)
 
-    @classmethod
-    def last_cases(cls):
-        last_report_data = (
-            Report.objects.only("updated_at").order_by("-updated_at").first()
-        )
-        return cls.objects.filter(report=last_report_data).all()
-
-    @property
-    def updated_at(self):
-        return self.report.updated_at
-
     def __str__(self):
         return f"{self.state} {self.report}"
 
