@@ -21,16 +21,16 @@ headers = {
 def cron(*args, **options):
     print(f"Cron job is running. The time is {datetime.now()}")
 
-    request = requests.get(url + "PortalGeral", headers=headers)
+    request = requests.get(url + "PortalGeralApi", headers=headers)
     content = request.content.decode("utf8")
-    data = json.loads(content)["results"][0]
+    data = json.loads(content)
 
-    last_report = datetime.strptime(data["dt_atualizacao"], "%H:%M %d/%m/%Y")
+    last_report = datetime.strptime(data["dt_updated"], '%Y-%m-%dT%H:%M:%S.%fZ')
 
     report, created = Report.objects.get_or_create(updated_at=last_report)
 
-    if created:
-        print(f"Novo relatório encontrado em {data['dt_atualizacao']}")
+    if not created:
+        print(f"Novo relatório encontrado em {last_report}")
         request = requests.get(url + "PortalEstado", headers=headers)
         content = request.content.decode("utf8")
         data = json.loads(content)
