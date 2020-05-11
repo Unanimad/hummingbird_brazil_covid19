@@ -25,7 +25,9 @@ def load_database(*args, **options):
     data = json.loads(content)['results'][0]
 
     csv_file = data['arquivo']['url']
-    df = pd.read_csv(csv_file, sep=';')
+    df = pd.read_csv(csv_file)
+
+    df = df.loc[(df['estado'].notnull()) & (df['municipio'].isna())]
 
     for i, row in df.iterrows():
         date = datetime.strptime(row['data'], '%Y-%m-%d')
@@ -33,8 +35,8 @@ def load_database(*args, **options):
             updated_at=date
         )
 
-        cases = row['casosAcumulados']
-        deaths = row['obitosAcumulados']
+        cases = row['casosAcumulado']
+        deaths = row['obitosAcumulado']
 
         default_region = ''
         for sigla, region in Case.REGION:
