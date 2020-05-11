@@ -20,12 +20,11 @@ headers = {
 def load_database(*args, **options):
     print(f"Job is running. The time is {datetime.now()}")
 
-    request = requests.get(url + 'PortalGeral', headers=headers)
+    request = requests.get(url + 'PortalGeralApi', headers=headers)
     content = request.content.decode('utf8')
-    data = json.loads(content)['results'][0]
-
-    csv_file = data['arquivo']['url']
-    df = pd.read_csv(csv_file)
+    data = json.loads(content)
+    xlsx_file = data['planilha']['arquivo']['url']
+    df = pd.read_excel(xlsx_file)
 
     df = df.loc[
         (df['estado'].notnull()) &
@@ -54,10 +53,6 @@ def load_database(*args, **options):
             report=report
         )
 
-    request = requests.get(url + 'PortalGeralApi', headers=headers)
-    content = request.content.decode('utf8')
-    data = json.loads(content)
-    xlsx_file = data['planilha']['arquivo']['url']
     df = pd.read_excel(xlsx_file)
     df = df.loc[df['municipio'].notnull()]
 
