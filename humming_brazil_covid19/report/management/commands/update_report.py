@@ -22,9 +22,7 @@ def cron(*args, **options):
     print(f"Cron job is running. The time is {datetime.now()}")
 
     request = requests.get(url + "PortalGeral", headers=headers)
-
     content = request.content.decode("utf8")
-
     data = json.loads(content)["results"][0]
 
     last_report = datetime.strptime(data["dt_atualizacao"], "%H:%M %d/%m/%Y")
@@ -32,26 +30,21 @@ def cron(*args, **options):
     report, created = Report.objects.get_or_create(updated_at=last_report)
 
     if created:
-        request = requests.get(url + "PortalMapa", headers=headers)
+        print(f"Novo relatório encontrado em {data['dt_atualizacao']}")
+        request = requests.get(url + "PortalEstado", headers=headers)
         content = request.content.decode("utf8")
-        data = json.loads(content)["results"]
+        data = json.loads(content)
 
         for state in data:
-            state_uf = ""
+            case = list(Case.objects.filter(state=state["nome"]))[0]
 
-            for uf in Case.STATES:
-                if uf[1] == state["nome"]:
-                    state_uf = uf[0]
-
-            case = list(Case.objects.filter(state=state_uf))[0]
-
-            cases = state.get("qtd_confirmado", 0)
-            deaths = state.get("qtd_obito", 0)
+            cases = state.get("casosAcumulado", 0)
+            deaths = state.get("obitosAcumulado", 0)
 
             Case.objects.get_or_create(
                 cases=cases,
                 deaths=deaths,
-                state=state_uf,
+                state=state["nome"],
                 region=case.region,
                 report=report,
             )
@@ -77,6 +70,6 @@ class Command(BaseCommand):
         print("Cron started! Wait the job starts!")
 
         scheduler = BlockingScheduler()
-        scheduler.add_job(cron, "cron", hour=19, timezone="America/Maceio")
+        scheduler.add_job(cron, "cron", hour=20, timezone="America/Maceio")
 
         scheduler.start()
