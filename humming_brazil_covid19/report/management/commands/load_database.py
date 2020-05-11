@@ -21,9 +21,7 @@ def load_database(*args, **options):
     print(f"Job is running. The time is {datetime.now()}")
 
     request = requests.get(url + 'PortalGeral', headers=headers)
-
     content = request.content.decode('utf8')
-
     data = json.loads(content)['results'][0]
 
     csv_file = data['arquivo']['url']
@@ -47,6 +45,28 @@ def load_database(*args, **options):
         Case.objects.get_or_create(
             cases=cases, deaths=deaths,
             state=row['estado'], region=default_region,
+            report=report
+        )
+
+    request = requests.get(url + 'PortalGeralApi', headers=headers)
+    content = request.content.decode('utf8')
+    data = json.loads(content)
+    xlsx_file = data['planilha']['arquivo']['url']
+    df = pd.read_excel(xlsx_file)
+    df = df.loc[df['municipio'].notnull()]
+
+    for i, row in df.iterrows():
+        date = datetime.strptime(row['data'], '%Y-%m-%d')
+        report, created = Report.objects.get_or_create(
+            updated_at=date
+        )
+
+        cases = row['casosAcumulado']
+        deaths = row['obitosAcumulado']
+
+        CityCase.objects.get_or_create(
+            cases=cases, deaths=deaths,
+            state=row['estado'], name=row['municipio'], code=row['codmun'],
             report=report
         )
 

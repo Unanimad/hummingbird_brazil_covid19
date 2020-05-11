@@ -80,3 +80,14 @@ class Case(models.Model):
     class Meta:
         ordering = ["report", "state"]
         verbose_name = "Caso"
+
+
+class CityCase(models.Model):
+    state = models.CharField(max_length=2, choices=Case.STATES)
+    name = models.TextField()
+    code = models.PositiveIntegerField()
+
+    cases = models.PositiveIntegerField(default=0)
+    deaths = models.PositiveIntegerField(default=0)
+
+    report = models.ForeignKey(Report, on_delete=models.CASCADE)

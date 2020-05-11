@@ -49,6 +49,29 @@ def cron(*args, **options):
                 report=report,
             )
 
+        request = requests.get(url + "PortalMunicipio", headers=headers)
+        content = request.content.decode("utf8")
+        data = json.loads(content)
+
+        for city in data:
+            try:
+                instance = list(CityCase.objects.filter(code=city["cod"]))[0]
+            except:
+                print(city)
+                continue
+            else:
+                cases = city.get("casosAcumulado", 0)
+                deaths = city.get("obitosAcumulado", 0)
+
+                CityCase.objects.get_or_create(
+                    cases=cases,
+                    deaths=deaths,
+                    name=instance.name,
+                    code=instance.code,
+                    state=instance.state,
+                    report=report,
+                )
+
         to_csv()
 
         instance = Kaggle.objects.last()
