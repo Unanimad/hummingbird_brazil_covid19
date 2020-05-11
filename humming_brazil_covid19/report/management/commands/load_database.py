@@ -27,7 +27,11 @@ def load_database(*args, **options):
     csv_file = data['arquivo']['url']
     df = pd.read_csv(csv_file)
 
-    df = df.loc[(df['estado'].notnull()) & (df['municipio'].isna())]
+    df = df.loc[
+        (df['estado'].notnull()) &
+        (df['municipio'].isna()) &
+        (df['populacaoTCU2019'].notnull())
+    ]
 
     for i, row in df.iterrows():
         date = datetime.strptime(row['data'], '%Y-%m-%d')
