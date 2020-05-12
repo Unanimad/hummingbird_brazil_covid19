@@ -13,10 +13,33 @@ def to_csv():
     values = []
     STATES = dict(Case.STATES)
     REGION = dict(Case.REGION)
+
     columns = [
-        'date', 'region', 'state', 'cases', 'deaths'
+        'date', 'country', 'week', 'cases', 'deaths', 'recovered', 'monitoring'
     ]
 
+    df = pd.DataFrame(None, columns=columns)
+    cases = MacroCase.objects.all()
+
+    for case in cases:
+        date = datetime.strftime(case.report.updated_at, '%Y-%m-%d')
+
+        week = case.week
+        cases = case.cases
+        deaths = case.deaths
+        recovered = case.recovered
+        monitoring = case.monitoring
+
+        values.append(dict(zip(columns, [date, 'Brazil', week, cases, deaths, recovered, monitoring])))
+
+    df = df.append(values, ignore_index=True)
+    df = df.sort_values(by=['date'])
+    df.to_csv('data/brazil_covid19_macro.csv', index=False, columns=columns)
+
+    values = []
+    columns = [
+        'date', 'region', 'state', 'cases', 'deaths',
+    ]
     df = pd.DataFrame(None, columns=columns)
 
     cases = Case.objects.all()
