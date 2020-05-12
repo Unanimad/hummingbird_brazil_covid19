@@ -1,91 +1,111 @@
 import json
 
 import requests
-import pandas as pd
-
-from datetime import datetime
-
-from kaggle.api.kaggle_api_extended import KaggleApi
 from apscheduler.schedulers.blocking import BlockingScheduler
-
-from django.conf import settings
-from django.utils.timezone import make_aware
 from django.core.management.base import BaseCommand
 
-from humming_brazil_covid19.report.utils import *
 from humming_brazil_covid19.report.models import *
+from humming_brazil_covid19.report.utils import to_csv
 
-url = "http://plataforma.saude.gov.br/novocoronavirus/resources/scripts/database.js"
-
-STATES = {11: 'Rondônia', 12: 'Acre', 13: 'Amazonas', 14: 'Roraima', 15: 'Pará',
-          16: 'Amapá', 17: 'Tocantins', 21: 'Maranhão', 22: 'Piauí', 23: 'Ceará',
-          24: 'Rio Grande do Norte', 25: 'Paraíba', 26: 'Pernambuco', 27: 'Alagoas',
-          28: 'Sergipe', 29: 'Bahia', 31: 'Minas Gerais', 32: 'Espírito Santo',
-          33: 'Rio de Janeiro', 35: 'São Paulo', 41: 'Paraná', 42: 'Santa Catarina',
-          43: 'Rio Grande do Sul', 50: 'Mato Grosso do Sul', 51: 'Mato Grosso',
-          52: 'Goiás', 53: 'Distrito Federal'}
+url = "https://xx9p7hp1p7.execute-api.us-east-1.amazonaws.com/prod/"
+headers = {
+    "accept": "application/json, text/plain, */*",
+    "accept-language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "cross-site",
+    "x-parse-application-id": "unAFkcaNDeXajurGB7LChj8SgQYS2ptm",
+}
 
 
 def cron(*args, **options):
-    if 6 <= datetime.now().hour <= 20:
+    print(f"Cron job is running. The time is {datetime.now()}")
 
-        print("Cron job is running. The time is %s" % datetime.now())
-        request = requests.get(url)
+    request = requests.get(url + "PortalGeral", headers=headers)
+    content = request.content.decode("utf8")
+    data = json.loads(content)['results'][0]
 
-        content = request.content.decode('utf8').replace('var database=', '')
+    last_report = datetime.strptime(data["dt_atualizacao"], "%d/%m/%Y %H:%M")
+
+    report, created = Report.objects.get_or_create(updated_at=last_report)
+
+    if not created:
+        print(f"Novo relatório encontrado em {last_report}")
+
+        request = requests.get(url + "PortalSintese", headers=headers)
+        content = request.content.decode("utf8")
+        data = json.loads(content)
+        data = data[0]
+
+        if data["coduf"] == "76":
+            cases = data['casosAcumulado']
+            deaths = data['obitosAcumulado']
+            week = data['semanaEpi']
+            recovered = data['Recuperadosnovos']
+            monitoring = data['emAcompanhamentoNovos']
+
+            MacroCase.objects.get_or_create(
+                cases=cases, deaths=deaths, week=week,
+                recovered=recovered, monitoring=monitoring, report=report
+            )
+
+        request = requests.get(url + "PortalEstado", headers=headers)
+        content = request.content.decode("utf8")
         data = json.loads(content)
 
-        last_report = f"{data['brazil'][-1]['date']} {data['brazil'][-1]['time']}"
-        last_report = datetime.strptime(last_report, '%d/%m/%Y %H:%M')
+        for state in data:
+            case = list(Case.objects.filter(state=state["nome"]))[0]
 
-        report, created = Report.objects.get_or_create(updated_at=make_aware(last_report))
+            cases = state.get("casosAcumulado", 0)
+            deaths = state.get("obitosAcumulado", 0)
 
-        if created:
-            df = pd.DataFrame(None, columns=['date', 'hour', 'state',
-                                             'suspects', 'refuses', 'cases'])
+            Case.objects.get_or_create(
+                cases=cases,
+                deaths=deaths,
+                state=state["nome"],
+                region=case.region,
+                report=report,
+            )
 
-            for record in data['brazil']:
-                confirmed_at = datetime.strptime(record['date'], '%d/%m/%Y')
-                confirmed_at = datetime.strftime(confirmed_at, '%Y-%m-%d')
-                hour = record['time']
+        request = requests.get(url + "PortalMunicipio", headers=headers)
+        content = request.content.decode("utf8")
+        data = json.loads(content)
 
-                for value in record['values']:
-                    state = STATES[int(value['uid'])]
+        for city in data:
+            cases = city.get("casosAcumulado", 0)
+            deaths = city.get("obitosAcumulado", 0)
+            state = CityCase.UF_CODE[city['cod'][:2]]
 
-                    suspects = get_key_value('suspects', value)
-                    refuses = get_key_value('refuses', value)
-                    cases = get_key_value('cases', value)
+            CityCase.objects.get_or_create(
+                cases=cases,
+                deaths=deaths,
+                name=city['nome'],
+                code=city['cod'],
+                state=state,
+                report=report,
+            )
 
-                    df = df.append(dict(zip(df.columns, [confirmed_at, hour, state,
-                                                         suspects, refuses, cases])),
-                                   ignore_index=True)
+        to_csv()
 
-            df.to_csv('data/brazil_covid19.csv', index=False)
+        instance = Kaggle.objects.last()
+        if not instance:
+            instance = Kaggle.objects.create(last_update=last_report)
 
-            report.updated_at = make_aware(last_report)
-            report.save()
+        instance.update_kaggle("data/", last_report)
 
-            update_dataset('data/',
-                           f"Update data - {datetime.strftime(datetime.now(), '%m/%d/%Y')}")
+    else:
+        print(f"The last report {report.updated_at} already exists!")
 
-            print("Successful data uploaded to Kaggle")
-            print("Done! The time is: %s" % datetime.now())
-
-
-def update_dataset(folder, note):
-    api = KaggleApi()
-    api.authenticate()
-
-    return api.dataset_create_version(folder, note, delete_old_versions=True)
+    print(f"Done! The time is: {datetime.now()}")
 
 
 class Command(BaseCommand):
-    help = 'Update kaggle dataset with the last cases of COVID-19 in Brazil.'
+    help = "Automatically update  kaggle dataset with the last cases of COVID-19 in Brazil."
 
     def handle(self, *args, **options):
-        print('Cron started! Wait the job starts!')
+        print("Cron started! Wait the job starts!")
 
         scheduler = BlockingScheduler()
-        scheduler.add_job(cron, 'interval', hours=1, timezone='America/Maceio')
+        scheduler.add_job(cron, "cron", hour=20, timezone="America/Maceio")
 
         scheduler.start()
