@@ -173,6 +173,53 @@
                     "type": "Uuid"
                 }
             ]
+        },
+        {
+            "description": "This file contains the information about the size of population by city. The data is from 2019 and was collected by TCU (Tribunal de Contas da União).",
+            "name": "brazil_population_2019.csv",
+            "totalBytes": 202997,
+            "columns": [
+                {
+                    "name": "region",
+                    "description": "Region of State",
+                    "type": "String"
+                },
+                {
+                    "name": "state",
+                    "description": "State name",
+                    "type": "String"
+                },
+                {
+                    "name": "city",
+                    "description": "City name",
+                    "type": "String"
+                },
+                {
+                    "name": "state_code",
+                    "description": "States' code",
+                    "type": "Uuid"
+                },
+                {
+                    "name": "city_code",
+                    "description": "City's code",
+                    "type": "Uuid"
+                },
+                {
+                    "name": "health_region_code",
+                    "description": "Health Region's code",
+                    "type": "Uuid"
+                },
+                {
+                    "name": "health_region",
+                    "description": "Health Region",
+                    "type": "String"
+                },
+                {
+                    "name": "population",
+                    "description": "Population size",
+                    "type": "Uuid"
+                }
+            ]
         }
     ]
 }
