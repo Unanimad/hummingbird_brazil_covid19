@@ -21,16 +21,34 @@ headers = {
 def cron(*args, **options):
     print(f"Cron job is running. The time is {datetime.now()}")
 
-    request = requests.get(url + "PortalGeralApi", headers=headers)
+    request = requests.get(url + "PortalGeral", headers=headers)
     content = request.content.decode("utf8")
-    data = json.loads(content)
+    data = json.loads(content)['results'][0]
 
-    last_report = datetime.strptime(data["dt_updated"], '%Y-%m-%dT%H:%M:%S.%fZ')
+    last_report = datetime.strptime(data["dt_atualizacao"], "%d/%m/%Y %H:%M")
 
     report, created = Report.objects.get_or_create(updated_at=last_report)
 
     if not created:
         print(f"Novo relatório encontrado em {last_report}")
+
+        request = requests.get(url + "PortalSintese", headers=headers)
+        content = request.content.decode("utf8")
+        data = json.loads(content)
+        data = data[0]
+
+        if data["coduf"] == "76":
+            cases = data['casosAcumulado']
+            deaths = data['obitosAcumulado']
+            week = data['semanaEpi']
+            recovered = data['Recuperadosnovos']
+            monitoring = data['emAcompanhamentoNovos']
+
+            MacroCase.objects.get_or_create(
+                cases=cases, deaths=deaths, week=week,
+                recovered=recovered, monitoring=monitoring, report=report
+            )
+
         request = requests.get(url + "PortalEstado", headers=headers)
         content = request.content.decode("utf8")
         data = json.loads(content)
@@ -54,23 +72,18 @@ def cron(*args, **options):
         data = json.loads(content)
 
         for city in data:
-            try:
-                instance = list(CityCase.objects.filter(code=city["cod"]))[0]
-            except:
-                print(city)
-                continue
-            else:
-                cases = city.get("casosAcumulado", 0)
-                deaths = city.get("obitosAcumulado", 0)
+            cases = city.get("casosAcumulado", 0)
+            deaths = city.get("obitosAcumulado", 0)
+            state = CityCase.UF_CODE[city['cod'][:2]]
 
-                CityCase.objects.get_or_create(
-                    cases=cases,
-                    deaths=deaths,
-                    name=instance.name,
-                    code=instance.code,
-                    state=instance.state,
-                    report=report,
-                )
+            CityCase.objects.get_or_create(
+                cases=cases,
+                deaths=deaths,
+                name=city['nome'],
+                code=city['cod'],
+                state=state,
+                report=report,
+            )
 
         to_csv()
 
