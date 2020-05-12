@@ -82,6 +82,16 @@ class Case(models.Model):
         verbose_name = "Caso"
 
 
+class MacroCase(models.Model):
+    cases = models.PositiveIntegerField(default=0)
+    deaths = models.PositiveIntegerField(default=0)
+    recovered = models.PositiveIntegerField(default=0)
+    monitoring = models.PositiveIntegerField(default=0)
+    week = models.PositiveSmallIntegerField(default=0)
+
+    report = models.ForeignKey(Report, on_delete=models.CASCADE)
+
+
 class CityCase(models.Model):
     state = models.CharField(max_length=2, choices=Case.STATES)
     name = models.TextField()
