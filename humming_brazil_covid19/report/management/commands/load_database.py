@@ -1,4 +1,5 @@
 import json
+import math
 
 import pandas as pd
 import requests
@@ -27,6 +28,30 @@ def load_database(*args, **options):
     xlsx_file = data['arquivo']['url']
     df = pd.read_excel(xlsx_file)
 
+    df = df.loc[df['regiao'] == 'Brasil']
+
+    for i, row in df.iterrows():
+        date = datetime.strptime(row['data'], '%Y-%m-%d')
+        report, created = Report.objects.get_or_create(
+            updated_at=date
+        )
+
+        cases = row['casosAcumulado']
+        deaths = row['obitosAcumulado']
+        week = row['semanaEpi']
+        recovered = row['Recuperadosnovos']
+        if math.isnan(recovered):
+            recovered = 0
+        monitoring = row['emAcompanhamentoNovos']
+        if math.isnan(monitoring):
+            monitoring = 0
+
+        MacroCase.objects.get_or_create(
+            cases=cases, deaths=deaths, week=week,
+            recovered=recovered, monitoring=monitoring, report=report
+        )
+
+    df = pd.read_excel(xlsx_file)
     df = df.loc[
         (df['estado'].notnull()) &
         (df['municipio'].isna()) &
