@@ -20,10 +20,11 @@ headers = {
 def load_database(*args, **options):
     print(f"Job is running. The time is {datetime.now()}")
 
-    request = requests.get(url + 'PortalGeralApi', headers=headers)
-    content = request.content.decode('utf8')
-    data = json.loads(content)
-    xlsx_file = data['planilha']['arquivo']['url']
+    request = requests.get(url + "PortalGeral", headers=headers)
+    content = request.content.decode("utf8")
+    data = json.loads(content)["results"][0]
+
+    xlsx_file = data['arquivo']['url']
     df = pd.read_excel(xlsx_file)
 
     df = df.loc[
