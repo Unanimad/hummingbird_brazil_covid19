@@ -4,6 +4,7 @@ import requests
 from apscheduler.schedulers.blocking import BlockingScheduler
 from django.core.management.base import BaseCommand
 
+from humming_brazil_covid19.report.management.commands.submit_report import submit_report
 from humming_brazil_covid19.report.models import *
 from humming_brazil_covid19.report.utils import to_csv
 
@@ -29,7 +30,7 @@ def cron(*args, **options):
 
     report, created = Report.objects.get_or_create(updated_at=last_report)
 
-    if not created:
+    if created:
         print(f"Novo relatório encontrado em {last_report}")
 
         request = requests.get(url + "PortalSintese", headers=headers)
@@ -86,12 +87,7 @@ def cron(*args, **options):
             )
 
         to_csv()
-
-        instance = Kaggle.objects.last()
-        if not instance:
-            instance = Kaggle.objects.create(last_update=last_report)
-
-        instance.update_kaggle("data/", last_report)
+        submit_report()
 
     else:
         print(f"The last report {report.updated_at} already exists!")
