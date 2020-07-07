@@ -1,7 +1,6 @@
 import json
 import os
 
-import gspread
 import pandas as pd
 
 from humming_brazil_covid19.report.models import *
