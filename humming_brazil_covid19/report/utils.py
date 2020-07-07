@@ -3,7 +3,6 @@ import os
 
 import gspread
 import pandas as pd
-from oauth2client.service_account import ServiceAccountCredentials
 
 from humming_brazil_covid19.report.models import *
 
