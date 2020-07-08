@@ -60,8 +60,6 @@ pyrsistent==0.16.0
 python-dateutil==2.8.1
 python-jwt==2.0.1
 python-slugify==4.0.0
-pytz==2019.3
-pywin32==227
 pywinpty==0.5.7
 pyzmq==19.0.0
 qtconsole==4.7.2
