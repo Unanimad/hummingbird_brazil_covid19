@@ -7,7 +7,6 @@ from django.core.management.base import BaseCommand
 from humming_brazil_covid19.report.management.commands.split_database import split_database
 from humming_brazil_covid19.report.management.commands.submit_report import submit_report
 from humming_brazil_covid19.report.models import *
-from humming_brazil_covid19.report.utils import to_csv
 
 url = "https://xx9p7hp1p7.execute-api.us-east-1.amazonaws.com/prod/"
 headers = {
