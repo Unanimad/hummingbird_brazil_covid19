@@ -32,9 +32,14 @@ def load_database(*args, **options):
 
     for i, row in df.iterrows():
         date = datetime.strptime(row['data'], '%Y-%m-%d')
-        report, created = Report.objects.get_or_create(
-            updated_at=date
-        )
+        report = Report.objects.filter(updated_at__month=date.month).filter(updated_at__day=date.day).filter(
+            updated_at__year=date.year)
+        if not report:
+            report, created = Report.objects.get_or_create(
+                updated_at=date
+            )
+        else:
+            report = report[0]
 
         cases = row['casosAcumulado']
         deaths = row['obitosAcumulado']
@@ -56,7 +61,7 @@ def load_database(*args, **options):
         (df['estado'].notnull()) &
         (df['municipio'].isna()) &
         (df['populacaoTCU2019'].notnull())
-    ]
+        ]
 
     for i, row in df.iterrows():
         date = datetime.strptime(row['data'], '%Y-%m-%d')
