@@ -16,10 +16,6 @@ django-filters==0.2.1
 django-rest-framework==0.1.0
 djangorestframework==3.11.0
 entrypoints==0.3
-gcloud==0.17.0
-google-auth==1.14.1
-googleapis-common-protos==1.51.0
-gspread==3.4.2
 httplib2==0.17.0
 idna==2.9
 importlib-metadata==1.6.0
@@ -85,3 +81,4 @@ webencodings==0.5.1
 widgetsnbextension==3.5.1
 xlrd==1.2.0
 zipp==3.1.0
+psycopg2==2.8.5
