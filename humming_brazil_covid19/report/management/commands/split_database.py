@@ -25,6 +25,10 @@ def split_database(*args, **options):
     data = json.loads(content)["results"][0]
 
     xlsx_file = data['arquivo']['url']
+
+    if 'HOJE' in xlsx_file:
+        return 'Database inválida'
+
     df = pd.read_excel(xlsx_file)
     df = df.rename(columns={
         'regiao': 'region', 'estado': 'state', 'municipio': 'name', 'codmun': 'code', 'data': 'date',
