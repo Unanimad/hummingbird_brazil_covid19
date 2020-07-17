@@ -56,6 +56,11 @@ def split_database(*args, **options):
     columns = ['date', 'state', 'name', 'code', 'cases', 'deaths']
     temp.to_csv('data/brazil_covid19_cities.csv', index=False, columns=columns)
 
+    del temp
+    del df
+    del columns
+    del data
+
 
 class Command(BaseCommand):
     help = 'Automatically load the database with the cases of COVID-19 in Brazil.'
