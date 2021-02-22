@@ -13,7 +13,7 @@ django-rest-framework==0.1.0
 djangorestframework==3.12.2
 entrypoints==0.3
 googleapis-common-protos==1.52.0
-httplib2==0.17.0
+httplib2==0.19.0
 ipykernel==5.2.0
 ipython==7.13.0
 ipython-genutils==0.2.0
