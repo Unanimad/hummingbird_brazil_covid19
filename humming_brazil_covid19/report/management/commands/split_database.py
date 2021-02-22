@@ -1,7 +1,12 @@
+import csv
 import json
 
+from io import BytesIO, TextIOWrapper
+from zipfile import ZipFile
+from urllib.request import urlopen
 import pandas as pd
 import requests
+
 from django.core.management.base import BaseCommand
 
 from humming_brazil_covid19.report.models import *
@@ -24,12 +29,14 @@ def split_database(*args, **options):
     content = request.content.decode("utf8")
     data = json.loads(content)["results"][0]
 
-    xlsx_file = data['arquivo']['url']
+    df = pd.read_csv(data['arquivo']['url'], sep=';')
+    # df = pd.read_csv('HIST_PAINEL_COVIDBR_07out2020.csv', sep=';')
 
-    if 'HOJE' in xlsx_file:
-        return 'Database inválida'
+    # resp = requests.get(data['arquivo']['url'], headers=headers)
+    # with ZipFile(BytesIO(resp.content)) as zf:
+    #     with zf.open('/'.join([data['texto_rodape'].replace('.zip', ''), data['texto_rodape'].replace('.zip', '.csv')]), 'r') as myZip:
+    #         df = pd.read_csv(myZip, sep=';')
 
-    df = pd.read_excel(xlsx_file)
     df = df.rename(columns={
         'regiao': 'region', 'estado': 'state', 'municipio': 'name', 'codmun': 'code', 'data': 'date',
         'semanaEpi': 'week', 'casosAcumulado': 'cases', 'obitosAcumulado': 'deaths', 'Recuperadosnovos': 'recovered',
