@@ -43,7 +43,7 @@ pyasn1-modules==0.2.8
 Pygments==2.6.1
 pyrsistent==0.16.0
 python-dateutil==2.8.1
-python-jwt==2.0.1
+python-jwt==3.3.4
 python-slugify==4.0.0
 pytz==2019.3
 pywin32==300
